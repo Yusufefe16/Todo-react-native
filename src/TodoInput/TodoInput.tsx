@@ -6,7 +6,7 @@ import styles from './TodoInput.style';
 interface TodoInputProps {
     value: string;
     onChangeText: (text: string) => void;
-    onAddTodo: (text: string, dueDate: Date | null) => void;
+    onAddTodo: (text: string, dueDate: Date ) => void;
 }
 
 const TodoInput: React.FC<TodoInputProps> = ({ value, onChangeText, onAddTodo }) => {
@@ -39,12 +39,15 @@ const TodoInput: React.FC<TodoInputProps> = ({ value, onChangeText, onAddTodo })
     };
 
     const handleAddTodo = () => {
+        if (value.trim() === '') {
+            setErrorMessage('Lütfen bir görev giriniz.');
+            return;
+        }
         if (!selectedDate) {
             setErrorMessage('Lütfen önce tarih ve saat seçiniz.');
             return;
         }
         onAddTodo(value, selectedDate);
-        // Todo eklendikten sonra tarihi ve hata mesajını resetle
         setSelectedDate(null);
         setErrorMessage('');
     };
@@ -76,7 +79,6 @@ const TodoInput: React.FC<TodoInputProps> = ({ value, onChangeText, onAddTodo })
                     onChange={onTimeChange}
                 />
             )}
-            {/* Seçili tarih varsa ekranda göster */}
             {selectedDate && (
                 <Text style={styles.selectedDateText}>
                     Seçilen Tarih: {selectedDate.toLocaleString()}

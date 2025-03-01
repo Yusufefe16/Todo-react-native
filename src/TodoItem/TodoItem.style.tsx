@@ -33,16 +33,34 @@ export default StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         marginBottom: 10,
+        textAlign: 'center',
     },
     modalInput: {
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    dateButton: {
+        backgroundColor: '#f0f0f0',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    dateButtonText: {
+        fontSize: 16,
+        color: '#333',
+        textAlign: 'center',
+    },
+    selectedDateText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#007bff',
+        marginBottom: 10,
     },
 });

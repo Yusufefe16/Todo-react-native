@@ -6,18 +6,19 @@
  */
 
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, Text, FlatList, StyleSheet} from 'react-native';
+import {SafeAreaView, Text, FlatList, StyleSheet, Alert} from 'react-native';
 import TodoInput from './TodoInput';
 import TodoItem from './TodoItem';
 import notifee, {AndroidImportance, TimestampTrigger, TriggerType} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Footer from "./Footer";
 
 
 interface Todo {
     id: string;
     text: string;
     completed: boolean;
-    dueDate?: number;
+    dueDate: Date;
 }
 
 
@@ -56,13 +57,13 @@ const App: React.FC = () => {
         }
     };
 
-    const addTodo = (todoText: string, dueDate: Date | null) => {
+    const addTodo = (todoText: string, dueDate: Date) => {
         if (todoText.trim()) {
-            const newTodo = {
+            const newTodo:Todo = {
                 id: Date.now().toString(),
                 text: todoText,
                 completed: false,
-                dueDate: dueDate ? dueDate.getTime() : undefined,
+                dueDate: dueDate,
             };
             setTodos([...todos, newTodo]);
             if (dueDate) {
@@ -83,15 +84,28 @@ const App: React.FC = () => {
         setTodos(todos.filter(todo => todo.id !== id));
     };
 
-    const updateTodo = (id: string, newText: string) => {
+    const updateTodo = (id: string, newText: string, dueDate: Date) => {
         setTodos(
             todos.map(todo =>
-                todo.id === id ? { ...todo, text: newText } : todo
+                todo.id === id ? { ...todo, text: newText , dueDate: dueDate} : todo
             )
         );
     };
 
+    const removeSelectedTodos = () => {
+        Alert.alert(
+            'Uyarı',
+            `Seçili olan ${completedTodoCount} adet todo silinecek. Emin misiniz?`,
+            [
+                { text: 'Evet', onPress: () => setTodos(todos.filter(todo => !todo.completed)) },
+                { text: 'Hayır', style: 'cancel' },
+            ]
+
+        );
+    };
+
     const activeTodoCount:number = todos.filter((todo:Todo) => !todo.completed).length;
+    const completedTodoCount:number = todos.filter((todo:Todo) => todo.completed).length;
 
     return (
         <SafeAreaView style={styles.container}>
@@ -105,12 +119,15 @@ const App: React.FC = () => {
                     <TodoItem item={item} onToggle={toggleTodo} onRemove={removeTodo} onUpdate={updateTodo}  />
                 )}
             />
+            {todos.some(todo => todo.completed) && (
+                <Footer onRemoveSelected={removeSelectedTodos} />
+            )}
         </SafeAreaView>
     );
 };
 
 // Seçilen tarih geldiğinde bildirimi tetiklemek için
-async function scheduleNotificationForTodo(todo: { id: string; text: string; completed: boolean; dueDate?: number; }) {
+async function scheduleNotificationForTodo(todo: { id: string; text: string; completed: boolean; dueDate: Date; }) {
     // Bildirim izni iste (iOS için)
     await notifee.requestPermission();
 
@@ -122,10 +139,10 @@ async function scheduleNotificationForTodo(todo: { id: string; text: string; com
     });
 
     // Eğer dueDate gelecekteyse, tetikleyici ayarla
-    if (todo.dueDate && todo.dueDate > Date.now()) {
+    if (todo.dueDate && todo.dueDate.getTime() > Date.now()) {
         const trigger: TimestampTrigger = {
             type: TriggerType.TIMESTAMP, // Zaman tabanlı tetikleme
-            timestamp: todo.dueDate,       // Seçilen tarih
+            timestamp: todo.dueDate.getTime(),       // Seçilen tarih
         };
 
         await notifee.createTriggerNotification(
